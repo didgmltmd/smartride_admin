@@ -12,7 +12,6 @@ import { getUsers } from "../api/users";
 export default function NoticesPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [uploadFiles, setUploadFiles] = useState([]);
   const [uploadDragActive, setUploadDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -23,8 +22,10 @@ export default function NoticesPage() {
 
   const [unreadModalOpen, setUnreadModalOpen] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState(null);
+  const [readUsers, setReadUsers] = useState([]);
   const [unreadUsers, setUnreadUsers] = useState([]);
   const [unreadLoading, setUnreadLoading] = useState(false);
+  const [readTab, setReadTab] = useState("unread");
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
@@ -89,19 +90,20 @@ export default function NoticesPage() {
       return;
     }
 
+    if (uploadFiles.length === 0) {
+      setMessage("공지사항 이미지를 파일로 업로드해 주세요.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      let uploadedUrls = [];
-
-      if (uploadFiles.length > 0) {
-        const uploadRes = await uploadMessageImages(uploadFiles);
-        uploadedUrls = uploadRes?.data?.imageUrls || [];
+      const uploadRes = await uploadMessageImages(uploadFiles);
+      const uploadedUrls = uploadRes?.data?.imageUrls || [];
+      if (uploadedUrls.length === 0) {
+        throw new Error("이미지 업로드 URL을 받지 못했습니다.");
       }
 
-      const mergedImageUrls = [
-        ...uploadedUrls,
-        ...(imageUrl.trim() ? [imageUrl.trim()] : []),
-      ];
+      const mergedImageUrls = [...uploadedUrls];
 
       await createMessage({
         title: trimmedTitle,
@@ -111,7 +113,6 @@ export default function NoticesPage() {
       });
       setTitle("");
       setContent("");
-      setImageUrl("");
       setUploadFiles([]);
       setMessage("공지사항이 등록되었습니다.");
       await loadNotices();
@@ -126,6 +127,8 @@ export default function NoticesPage() {
     setSelectedNotice(notice);
     setUnreadModalOpen(true);
     setUnreadLoading(true);
+    setReadTab("unread");
+    setReadUsers([]);
     setUnreadUsers([]);
 
     try {
@@ -134,6 +137,7 @@ export default function NoticesPage() {
       const reads = readsRes?.data || [];
       const users = usersRes?.data || [];
       const readIds = new Set(reads.map((item) => item.employeeId));
+      setReadUsers(reads);
 
       const unread = users.filter((user) => {
         const isAdmin = user.role === "ADMIN";
@@ -154,7 +158,9 @@ export default function NoticesPage() {
   function closeUnreadModal() {
     setUnreadModalOpen(false);
     setSelectedNotice(null);
+    setReadUsers([]);
     setUnreadUsers([]);
+    setReadTab("unread");
   }
 
   function openEditModal(notice) {
@@ -263,20 +269,6 @@ export default function NoticesPage() {
                 className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="imageUrl" className="mb-2 block text-sm font-semibold text-slate-700">
-              이미지 URL
-            </label>
-            <input
-              id="imageUrl"
-              type="text"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="이미지 URL"
-              className="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
           </div>
 
           <div>
@@ -414,13 +406,44 @@ export default function NoticesPage() {
               </p>
             )}
 
+            {!unreadLoading && (
+              <div className="mb-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReadTab("read")}
+                  className={`rounded-md px-3 py-1.5 text-sm ${
+                    readTab === "read"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  확인자
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReadTab("unread")}
+                  className={`rounded-md px-3 py-1.5 text-sm ${
+                    readTab === "unread"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  미확인자
+                </button>
+              </div>
+            )}
+
             {unreadLoading && <p className="text-sm text-slate-500">미확인자 목록을 불러오는 중입니다.</p>}
 
-            {!unreadLoading && unreadUsers.length === 0 && (
+            {!unreadLoading && readTab === "unread" && unreadUsers.length === 0 && (
               <p className="text-sm text-slate-500">미확인자가 없습니다.</p>
             )}
 
-            {!unreadLoading && unreadUsers.length > 0 && (
+            {!unreadLoading && readTab === "read" && readUsers.length === 0 && (
+              <p className="text-sm text-slate-500">확인자가 없습니다.</p>
+            )}
+
+            {!unreadLoading && readTab === "unread" && unreadUsers.length > 0 && (
               <div className="max-h-80 overflow-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
@@ -434,6 +457,29 @@ export default function NoticesPage() {
                       <tr key={user.employeeId} className="border-t border-slate-100">
                         <td className="px-4 py-2 text-slate-700">{user.employeeId}</td>
                         <td className="px-4 py-2 text-slate-700">{user.name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {!unreadLoading && readTab === "read" && readUsers.length > 0 && (
+              <div className="max-h-80 overflow-auto rounded-lg border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">사원번호</th>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">이름</th>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">확인시간</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {readUsers.map((user) => (
+                      <tr key={user.employeeId} className="border-t border-slate-100">
+                        <td className="px-4 py-2 text-slate-700">{user.employeeId}</td>
+                        <td className="px-4 py-2 text-slate-700">{user.name}</td>
+                        <td className="px-4 py-2 text-slate-700">{user.readAt || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
