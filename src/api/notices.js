@@ -11,6 +11,18 @@ export async function createMessage(payload) {
   return data;
 }
 
+export async function uploadMessageImages(files) {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+
+  const { data } = await client.post(ENDPOINTS.messageImageUpload, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data;
+}
+
 export async function updateMessage(id, payload) {
   const { data } = await client.put(`${ENDPOINTS.messages}/${id}`, payload);
   return data;

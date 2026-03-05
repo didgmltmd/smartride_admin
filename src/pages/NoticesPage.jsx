@@ -5,6 +5,7 @@ import {
   getMessageReads,
   getMessages,
   updateMessage,
+  uploadMessageImages,
 } from "../api/notices";
 import { getUsers } from "../api/users";
 
@@ -12,6 +13,9 @@ export default function NoticesPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const [uploadDragActive, setUploadDragActive] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +51,35 @@ export default function NoticesPage() {
     loadNotices();
   }, []);
 
+  function onUploadDrag(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === "dragenter" || event.type === "dragover") {
+      setUploadDragActive(true);
+    } else if (event.type === "dragleave") {
+      setUploadDragActive(false);
+    }
+  }
+
+  function onUploadDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setUploadDragActive(false);
+    const files = Array.from(event.dataTransfer.files || []);
+    if (files.length === 0) return;
+    setUploadFiles((prev) => [...prev, ...files]);
+  }
+
+  function onSelectUploadFiles(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    setUploadFiles((prev) => [...prev, ...files]);
+  }
+
+  function removeUploadFile(index) {
+    setUploadFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit() {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
@@ -56,19 +89,36 @@ export default function NoticesPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
+      let uploadedUrls = [];
+
+      if (uploadFiles.length > 0) {
+        const uploadRes = await uploadMessageImages(uploadFiles);
+        uploadedUrls = uploadRes?.data?.imageUrls || [];
+      }
+
+      const mergedImageUrls = [
+        ...uploadedUrls,
+        ...(imageUrl.trim() ? [imageUrl.trim()] : []),
+      ];
+
       await createMessage({
         title: trimmedTitle,
         content: trimmedContent,
-        imageUrl: imageUrl.trim(),
+        imageUrls: mergedImageUrls,
+        imageUrl: mergedImageUrls[0] || "",
       });
       setTitle("");
       setContent("");
       setImageUrl("");
+      setUploadFiles([]);
       setMessage("공지사항이 등록되었습니다.");
       await loadNotices();
     } catch (e) {
       setMessage(e?.response?.data?.message || "공지사항 등록에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -229,13 +279,56 @@ export default function NoticesPage() {
             />
           </div>
 
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">이미지 업로드</label>
+            <div
+              onDragEnter={onUploadDrag}
+              onDragOver={onUploadDrag}
+              onDragLeave={onUploadDrag}
+              onDrop={onUploadDrop}
+              className={`rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
+                uploadDragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50"
+              }`}
+            >
+              <p className="text-sm text-slate-600">이미지를 드래그앤드롭 하거나 선택하세요.</p>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={onSelectUploadFiles}
+                className="mt-3 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+              />
+            </div>
+
+            {uploadFiles.length > 0 && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+                <p className="mb-2 text-xs font-semibold text-slate-600">선택된 파일</p>
+                <ul className="space-y-1 text-sm text-slate-700">
+                  {uploadFiles.map((file, index) => (
+                    <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2">
+                      <span className="truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeUploadFile(index)}
+                        className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700 hover:bg-slate-200"
+                      >
+                        제거
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
           <div className="pt-2">
             <button
               onClick={handleSubmit}
+              disabled={submitting}
               className="w-full rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-blue-700"
               type="button"
             >
-              공지 등록
+              {submitting ? "등록 중..." : "공지 등록"}
             </button>
           </div>
         </div>

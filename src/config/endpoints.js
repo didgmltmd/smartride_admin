@@ -4,5 +4,6 @@ export const ENDPOINTS = {
   login: "/auth/login",
   users: "/admin/users",
   messages: "/admin/messages",
+  messageImageUpload: "/admin/uploads/images",
   settlementUpload: "/admin/excel/settlements",
 };
