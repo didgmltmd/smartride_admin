@@ -109,7 +109,6 @@ export default function NoticesPage() {
         title: trimmedTitle,
         content: trimmedContent,
         imageUrls: mergedImageUrls,
-        imageUrl: mergedImageUrls[0] || "",
       });
       setTitle("");
       setContent("");
