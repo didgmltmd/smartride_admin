@@ -90,26 +90,28 @@ export default function NoticesPage() {
       return;
     }
 
-    if (uploadFiles.length === 0) {
-      setMessage("공지사항 이미지를 파일로 업로드해 주세요.");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const uploadRes = await uploadMessageImages(uploadFiles);
-      const uploadedUrls = uploadRes?.data?.imageUrls || [];
-      if (uploadedUrls.length === 0) {
-        throw new Error("이미지 업로드 URL을 받지 못했습니다.");
+      let uploadedUrls = [];
+
+      if (uploadFiles.length > 0) {
+        const uploadRes = await uploadMessageImages(uploadFiles);
+        uploadedUrls = uploadRes?.data?.imageUrls || [];
+        if (uploadedUrls.length === 0) {
+          throw new Error("이미지 업로드 URL을 받지 못했습니다.");
+        }
       }
 
-      const mergedImageUrls = [...uploadedUrls];
-
-      await createMessage({
+      const payload = {
         title: trimmedTitle,
         content: trimmedContent,
-        imageUrls: mergedImageUrls,
-      });
+      };
+
+      if (uploadedUrls.length > 0) {
+        payload.imageUrls = uploadedUrls;
+      }
+
+      await createMessage(payload);
       setTitle("");
       setContent("");
       setUploadFiles([]);
