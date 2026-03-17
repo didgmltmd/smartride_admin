@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://sinyongtaxi-i7e5.onrender.com",
+        target: "https://sinyongtaxi-1.onrender.com/api/app",
         changeOrigin: true,
         secure: true,
       },
