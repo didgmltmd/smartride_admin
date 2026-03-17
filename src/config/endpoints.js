@@ -1,6 +1,6 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://sinyongtaxi-1.onrender.com/api/app";
+  "https://sinyongtaxi-1.onrender.com/";
 
 export const ENDPOINTS = {
   login: "/auth/login",
