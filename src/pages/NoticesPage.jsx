@@ -272,6 +272,7 @@ export default function NoticesPage() {
         title: nextTitle,
         content: nextContent,
         imageUrl: nextImageUrls[0] || "",
+        imageUrls: nextImageUrls,
       });
       setMessage("공지사항이 수정되었습니다.");
       closeEditModal();
