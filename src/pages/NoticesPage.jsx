@@ -267,7 +267,6 @@ export default function NoticesPage() {
       const currentImageUrls = Array.isArray(editForm.imageUrls)
         ? editForm.imageUrls
         : [];
-      console.log(currentImageUrls);
 
       if (editUploadFiles.length > 0) {
         const uploadRes = await uploadMessageImages(editUploadFiles);
@@ -278,6 +277,7 @@ export default function NoticesPage() {
       }
 
       const nextImageUrls = [...currentImageUrls, ...uploadedUrls];
+      console.log(currentImageUrls, nextImageUrls);
 
       await updateMessage(editForm.id, {
         title: nextTitle,
