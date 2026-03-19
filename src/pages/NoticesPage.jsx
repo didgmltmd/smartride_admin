@@ -31,7 +31,12 @@ export default function NoticesPage() {
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ id: null, title: "", content: "", imageUrls: [] });
+  const [editForm, setEditForm] = useState({
+    id: null,
+    title: "",
+    content: "",
+    imageUrls: [],
+  });
   const [editUploadFiles, setEditUploadFiles] = useState([]);
   const [editUploadDragActive, setEditUploadDragActive] = useState(false);
   const editUploadInputRef = useRef(null);
@@ -187,7 +192,10 @@ export default function NoticesPage() {
     setUnreadUsers([]);
 
     try {
-      const [readsRes, usersRes] = await Promise.all([getMessageReads(notice.id), getUsers()]);
+      const [readsRes, usersRes] = await Promise.all([
+        getMessageReads(notice.id),
+        getUsers(),
+      ]);
 
       const reads = readsRes?.data || [];
       const users = usersRes?.data || [];
@@ -256,7 +264,10 @@ export default function NoticesPage() {
     setEditSaving(true);
     try {
       let uploadedUrls = [];
-      const currentImageUrls = Array.isArray(editForm.imageUrls) ? editForm.imageUrls : [];
+      const currentImageUrls = Array.isArray(editForm.imageUrls)
+        ? editForm.imageUrls
+        : [];
+      console.log(currentImageUrls);
 
       if (editUploadFiles.length > 0) {
         const uploadRes = await uploadMessageImages(editUploadFiles);
@@ -320,7 +331,10 @@ export default function NoticesPage() {
       <div className="max-w-4xl rounded-xl bg-white p-8 shadow-sm">
         <div className="space-y-6">
           <div>
-            <label htmlFor="title" className="mb-2 block text-sm font-semibold text-slate-700">
+            <label
+              htmlFor="title"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
               제목
             </label>
             <input
@@ -334,7 +348,10 @@ export default function NoticesPage() {
           </div>
 
           <div>
-            <label htmlFor="content" className="mb-2 block text-sm font-semibold text-slate-700">
+            <label
+              htmlFor="content"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
               내용
             </label>
             <div className="relative">
@@ -350,17 +367,23 @@ export default function NoticesPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">이미지 업로드</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              이미지 업로드
+            </label>
             <div
               onDragEnter={onUploadDrag}
               onDragOver={onUploadDrag}
               onDragLeave={onUploadDrag}
               onDrop={onUploadDrop}
               className={`rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
-                uploadDragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50"
+                uploadDragActive
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-300 bg-slate-50"
               }`}
             >
-              <p className="text-sm text-slate-600">이미지를 드래그앤드롭 하거나 선택하세요.</p>
+              <p className="text-sm text-slate-600">
+                이미지를 드래그앤드롭 하거나 선택하세요.
+              </p>
               <input
                 ref={uploadInputRef}
                 type="file"
@@ -373,10 +396,15 @@ export default function NoticesPage() {
 
             {uploadFiles.length > 0 && (
               <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-                <p className="mb-2 text-xs font-semibold text-slate-600">선택된 파일</p>
+                <p className="mb-2 text-xs font-semibold text-slate-600">
+                  선택된 파일
+                </p>
                 <ul className="space-y-1 text-sm text-slate-700">
                   {uploadFiles.map((file, index) => (
-                    <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2">
+                    <li
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between gap-2"
+                    >
                       <span className="truncate">{file.name}</span>
                       <button
                         type="button"
@@ -424,10 +452,17 @@ export default function NoticesPage() {
             const noticeImageUrl = noticeImageUrls[0];
 
             return (
-              <div key={notice.id} className="rounded-xl bg-white p-6 shadow-sm">
+              <div
+                key={notice.id}
+                className="rounded-xl bg-white p-6 shadow-sm"
+              >
                 <div className="border-l-4 border-blue-600 pl-6">
-                  <h3 className="mb-3 text-lg font-bold text-slate-800">{notice.title}</h3>
-                  <p className="mb-4 text-sm leading-relaxed text-slate-600">{notice.content}</p>
+                  <h3 className="mb-3 text-lg font-bold text-slate-800">
+                    {notice.title}
+                  </h3>
+                  <p className="mb-4 text-sm leading-relaxed text-slate-600">
+                    {notice.content}
+                  </p>
                   {noticeImageUrl && (
                     <a
                       href={noticeImageUrl}
@@ -468,13 +503,18 @@ export default function NoticesPage() {
       </div>
 
       {unreadModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={closeUnreadModal}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
+          onClick={closeUnreadModal}
+        >
           <div
             className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">미확인자 목록</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                미확인자 목록
+              </h2>
               <button
                 onClick={closeUnreadModal}
                 className="rounded-md bg-slate-100 px-3 py-1 text-sm text-slate-700"
@@ -517,53 +557,87 @@ export default function NoticesPage() {
               </div>
             )}
 
-            {unreadLoading && <p className="text-sm text-slate-500">미확인자 목록을 불러오는 중입니다.</p>}
-
-            {!unreadLoading && readTab === "unread" && unreadUsers.length === 0 && (
-              <p className="text-sm text-slate-500">미확인자가 없습니다.</p>
+            {unreadLoading && (
+              <p className="text-sm text-slate-500">
+                미확인자 목록을 불러오는 중입니다.
+              </p>
             )}
+
+            {!unreadLoading &&
+              readTab === "unread" &&
+              unreadUsers.length === 0 && (
+                <p className="text-sm text-slate-500">미확인자가 없습니다.</p>
+              )}
 
             {!unreadLoading && readTab === "read" && readUsers.length === 0 && (
               <p className="text-sm text-slate-500">확인자가 없습니다.</p>
             )}
 
-            {!unreadLoading && readTab === "unread" && unreadUsers.length > 0 && (
-              <div className="max-h-80 overflow-auto rounded-lg border border-slate-200">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-700">사원번호</th>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-700">이름</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {unreadUsers.map((user) => (
-                      <tr key={user.employeeId} className="border-t border-slate-100">
-                        <td className="px-4 py-2 text-slate-700">{user.employeeId}</td>
-                        <td className="px-4 py-2 text-slate-700">{user.name}</td>
+            {!unreadLoading &&
+              readTab === "unread" &&
+              unreadUsers.length > 0 && (
+                <div className="max-h-80 overflow-auto rounded-lg border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-semibold text-slate-700">
+                          사원번호
+                        </th>
+                        <th className="px-4 py-2 text-left font-semibold text-slate-700">
+                          이름
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody>
+                      {unreadUsers.map((user) => (
+                        <tr
+                          key={user.employeeId}
+                          className="border-t border-slate-100"
+                        >
+                          <td className="px-4 py-2 text-slate-700">
+                            {user.employeeId}
+                          </td>
+                          <td className="px-4 py-2 text-slate-700">
+                            {user.name}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
             {!unreadLoading && readTab === "read" && readUsers.length > 0 && (
               <div className="max-h-80 overflow-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-700">사원번호</th>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-700">이름</th>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-700">확인시간</th>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">
+                        사원번호
+                      </th>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">
+                        이름
+                      </th>
+                      <th className="px-4 py-2 text-left font-semibold text-slate-700">
+                        확인시간
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {readUsers.map((user) => (
-                      <tr key={user.employeeId} className="border-t border-slate-100">
-                        <td className="px-4 py-2 text-slate-700">{user.employeeId}</td>
-                        <td className="px-4 py-2 text-slate-700">{user.name}</td>
-                        <td className="px-4 py-2 text-slate-700">{user.readAt || "-"}</td>
+                      <tr
+                        key={user.employeeId}
+                        className="border-t border-slate-100"
+                      >
+                        <td className="px-4 py-2 text-slate-700">
+                          {user.employeeId}
+                        </td>
+                        <td className="px-4 py-2 text-slate-700">
+                          {user.name}
+                        </td>
+                        <td className="px-4 py-2 text-slate-700">
+                          {user.readAt || "-"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -575,40 +649,63 @@ export default function NoticesPage() {
       )}
 
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={closeEditModal}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
+          onClick={closeEditModal}
+        >
           <div
             className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">공지사항 수정</h2>
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+              공지사항 수정
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">제목</label>
+                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                  제목
+                </label>
                 <input
                   type="text"
                   value={editForm.title}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   className="w-full rounded-lg border border-slate-200 px-4 py-2.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">내용</label>
+                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                  내용
+                </label>
                 <textarea
                   value={editForm.content}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, content: e.target.value }))}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      content: e.target.value,
+                    }))
+                  }
                   rows={6}
                   className="w-full rounded-lg border border-slate-200 px-4 py-2.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">기존 이미지</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  기존 이미지
+                </label>
                 {editForm.imageUrls.length === 0 ? (
-                  <p className="text-sm text-slate-500">등록된 이미지가 없습니다.</p>
+                  <p className="text-sm text-slate-500">
+                    등록된 이미지가 없습니다.
+                  </p>
                 ) : (
                   <div className="rounded-lg border border-slate-200 bg-white p-3">
                     <ul className="space-y-2 text-sm text-slate-700">
                       {editForm.imageUrls.map((imageUrl, index) => (
-                        <li key={`${imageUrl}-${index}`} className="flex items-center justify-between gap-3">
+                        <li
+                          key={`${imageUrl}-${index}`}
+                          className="flex items-center justify-between gap-3"
+                        >
                           <a
                             href={imageUrl}
                             target="_blank"
@@ -631,17 +728,23 @@ export default function NoticesPage() {
                 )}
               </div>
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">이미지 추가 업로드</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  이미지 추가 업로드
+                </label>
                 <div
                   onDragEnter={onEditUploadDrag}
                   onDragOver={onEditUploadDrag}
                   onDragLeave={onEditUploadDrag}
                   onDrop={onEditUploadDrop}
                   className={`rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
-                    editUploadDragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50"
+                    editUploadDragActive
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-300 bg-slate-50"
                   }`}
                 >
-                  <p className="text-sm text-slate-600">이미지를 드래그앤드롭 하거나 선택하세요.</p>
+                  <p className="text-sm text-slate-600">
+                    이미지를 드래그앤드롭 하거나 선택하세요.
+                  </p>
                   <input
                     ref={editUploadInputRef}
                     type="file"
@@ -654,10 +757,15 @@ export default function NoticesPage() {
 
                 {editUploadFiles.length > 0 && (
                   <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-                    <p className="mb-2 text-xs font-semibold text-slate-600">새로 선택된 파일</p>
+                    <p className="mb-2 text-xs font-semibold text-slate-600">
+                      새로 선택된 파일
+                    </p>
                     <ul className="space-y-1 text-sm text-slate-700">
                       {editUploadFiles.map((file, index) => (
-                        <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2">
+                        <li
+                          key={`${file.name}-${index}`}
+                          className="flex items-center justify-between gap-2"
+                        >
                           <span className="truncate">{file.name}</span>
                           <button
                             type="button"
@@ -696,12 +804,17 @@ export default function NoticesPage() {
       )}
 
       {deleteModalOpen && deleteTarget && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={closeDeleteModal}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
+          onClick={closeDeleteModal}
+        >
           <div
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="mb-2 text-lg font-semibold text-slate-900">공지사항 삭제 확인</h2>
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">
+              공지사항 삭제 확인
+            </h2>
             <p className="mb-5 text-sm text-slate-600">
               <strong>{deleteTarget.title}</strong> 공지사항을 삭제하시겠습니까?
             </p>
