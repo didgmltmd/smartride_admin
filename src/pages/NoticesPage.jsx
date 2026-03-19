@@ -7,12 +7,14 @@ import {
   updateMessage,
   uploadMessageImages,
 } from "../api/notices";
+import { useRef } from "react";
 import { getUsers } from "../api/users";
 
 export default function NoticesPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [uploadFiles, setUploadFiles] = useState([]);
+  const uploadInputRef = useRef(null);
   const [uploadDragActive, setUploadDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -115,6 +117,9 @@ export default function NoticesPage() {
       setTitle("");
       setContent("");
       setUploadFiles([]);
+      if (uploadInputRef.current) {
+        uploadInputRef.current.value = "";
+      }
       setMessage("공지사항이 등록되었습니다.");
       await loadNotices();
     } catch (e) {
@@ -184,8 +189,8 @@ export default function NoticesPage() {
     const nextTitle = editForm.title.trim();
     const nextContent = editForm.content.trim();
 
-    if (!nextTitle || !nextContent) {
-      setMessage("수정할 제목과 내용을 입력해 주세요.");
+    if (!nextTitle) {
+      setMessage("수정할 제목을 입력해 주세요.");
       return;
     }
 
@@ -285,6 +290,7 @@ export default function NoticesPage() {
             >
               <p className="text-sm text-slate-600">이미지를 드래그앤드롭 하거나 선택하세요.</p>
               <input
+                ref={uploadInputRef}
                 type="file"
                 multiple
                 accept="image/*"
