@@ -256,6 +256,7 @@ export default function NoticesPage() {
     setEditSaving(true);
     try {
       let uploadedUrls = [];
+      const currentImageUrls = Array.isArray(editForm.imageUrls) ? editForm.imageUrls : [];
 
       if (editUploadFiles.length > 0) {
         const uploadRes = await uploadMessageImages(editUploadFiles);
@@ -265,10 +266,12 @@ export default function NoticesPage() {
         }
       }
 
+      const nextImageUrls = [...currentImageUrls, ...uploadedUrls];
+
       await updateMessage(editForm.id, {
         title: nextTitle,
         content: nextContent,
-        imageUrls: [...editForm.imageUrls, ...uploadedUrls],
+        imageUrl: nextImageUrls[0] || "",
       });
       setMessage("공지사항이 수정되었습니다.");
       closeEditModal();
