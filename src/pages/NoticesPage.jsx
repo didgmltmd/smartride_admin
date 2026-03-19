@@ -31,11 +31,24 @@ export default function NoticesPage() {
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ id: null, title: "", content: "" });
+  const [editForm, setEditForm] = useState({ id: null, title: "", content: "", imageUrls: [] });
+  const [editUploadFiles, setEditUploadFiles] = useState([]);
+  const [editUploadDragActive, setEditUploadDragActive] = useState(false);
+  const editUploadInputRef = useRef(null);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  function getNoticeImageUrls(notice) {
+    if (Array.isArray(notice?.imageUrls) && notice.imageUrls.length > 0) {
+      return notice.imageUrls.filter(Boolean);
+    }
+    if (notice?.imageUrl) {
+      return [notice.imageUrl];
+    }
+    return [];
+  }
 
   async function loadNotices() {
     setLoading(true);
@@ -81,6 +94,42 @@ export default function NoticesPage() {
 
   function removeUploadFile(index) {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function onEditUploadDrag(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === "dragenter" || event.type === "dragover") {
+      setEditUploadDragActive(true);
+    } else if (event.type === "dragleave") {
+      setEditUploadDragActive(false);
+    }
+  }
+
+  function onEditUploadDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    setEditUploadDragActive(false);
+    const files = Array.from(event.dataTransfer.files || []);
+    if (files.length === 0) return;
+    setEditUploadFiles((prev) => [...prev, ...files]);
+  }
+
+  function onSelectEditUploadFiles(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    setEditUploadFiles((prev) => [...prev, ...files]);
+  }
+
+  function removeEditUploadFile(index) {
+    setEditUploadFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeExistingEditImage(index) {
+    setEditForm((prev) => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, i) => i !== index),
+    }));
   }
 
   async function handleSubmit() {
@@ -174,14 +223,25 @@ export default function NoticesPage() {
       id: notice.id,
       title: notice.title || "",
       content: notice.content || "",
+      imageUrls: getNoticeImageUrls(notice),
     });
+    setEditUploadFiles([]);
+    setEditUploadDragActive(false);
+    if (editUploadInputRef.current) {
+      editUploadInputRef.current.value = "";
+    }
     setEditModalOpen(true);
   }
 
   function closeEditModal() {
     if (editSaving) return;
     setEditModalOpen(false);
-    setEditForm({ id: null, title: "", content: "" });
+    setEditForm({ id: null, title: "", content: "", imageUrls: [] });
+    setEditUploadFiles([]);
+    setEditUploadDragActive(false);
+    if (editUploadInputRef.current) {
+      editUploadInputRef.current.value = "";
+    }
   }
 
   async function onConfirmEdit() {
@@ -195,9 +255,20 @@ export default function NoticesPage() {
 
     setEditSaving(true);
     try {
+      let uploadedUrls = [];
+
+      if (editUploadFiles.length > 0) {
+        const uploadRes = await uploadMessageImages(editUploadFiles);
+        uploadedUrls = uploadRes?.data?.imageUrls || [];
+        if (uploadedUrls.length === 0) {
+          throw new Error("이미지 업로드 URL을 받지 못했습니다.");
+        }
+      }
+
       await updateMessage(editForm.id, {
         title: nextTitle,
         content: nextContent,
+        imageUrls: [...editForm.imageUrls, ...uploadedUrls],
       });
       setMessage("공지사항이 수정되었습니다.");
       closeEditModal();
@@ -345,47 +416,52 @@ export default function NoticesPage() {
         )}
 
         {!loading &&
-          notices.map((notice) => (
-            <div key={notice.id} className="rounded-xl bg-white p-6 shadow-sm">
-              <div className="border-l-4 border-blue-600 pl-6">
-                <h3 className="mb-3 text-lg font-bold text-slate-800">{notice.title}</h3>
-                <p className="mb-4 text-sm leading-relaxed text-slate-600">{notice.content}</p>
-                {notice.imageUrl && (
-                  <a
-                    href={notice.imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mb-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    이미지 보기 →
-                  </a>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(notice)}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                    type="button"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(notice)}
-                    className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
-                    type="button"
-                  >
-                    삭제
-                  </button>
-                  <button
-                    onClick={() => openUnreadModal(notice)}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                    type="button"
-                  >
-                    미확인자 조회
-                  </button>
+          notices.map((notice) => {
+            const noticeImageUrls = getNoticeImageUrls(notice);
+            const noticeImageUrl = noticeImageUrls[0];
+
+            return (
+              <div key={notice.id} className="rounded-xl bg-white p-6 shadow-sm">
+                <div className="border-l-4 border-blue-600 pl-6">
+                  <h3 className="mb-3 text-lg font-bold text-slate-800">{notice.title}</h3>
+                  <p className="mb-4 text-sm leading-relaxed text-slate-600">{notice.content}</p>
+                  {noticeImageUrl && (
+                    <a
+                      href={noticeImageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mb-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      이미지 보기 →
+                    </a>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditModal(notice)}
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                      type="button"
+                    >
+                      수정
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(notice)}
+                      className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                      type="button"
+                    >
+                      삭제
+                    </button>
+                    <button
+                      onClick={() => openUnreadModal(notice)}
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                      type="button"
+                    >
+                      미확인자 조회
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       {unreadModalOpen && (
@@ -520,6 +596,78 @@ export default function NoticesPage() {
                   rows={6}
                   className="w-full rounded-lg border border-slate-200 px-4 py-2.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">기존 이미지</label>
+                {editForm.imageUrls.length === 0 ? (
+                  <p className="text-sm text-slate-500">등록된 이미지가 없습니다.</p>
+                ) : (
+                  <div className="rounded-lg border border-slate-200 bg-white p-3">
+                    <ul className="space-y-2 text-sm text-slate-700">
+                      {editForm.imageUrls.map((imageUrl, index) => (
+                        <li key={`${imageUrl}-${index}`} className="flex items-center justify-between gap-3">
+                          <a
+                            href={imageUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="truncate text-blue-600 hover:text-blue-700"
+                          >
+                            {imageUrl}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => removeExistingEditImage(index)}
+                            className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700 hover:bg-slate-200"
+                          >
+                            제거
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">이미지 추가 업로드</label>
+                <div
+                  onDragEnter={onEditUploadDrag}
+                  onDragOver={onEditUploadDrag}
+                  onDragLeave={onEditUploadDrag}
+                  onDrop={onEditUploadDrop}
+                  className={`rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
+                    editUploadDragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-slate-50"
+                  }`}
+                >
+                  <p className="text-sm text-slate-600">이미지를 드래그앤드롭 하거나 선택하세요.</p>
+                  <input
+                    ref={editUploadInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={onSelectEditUploadFiles}
+                    className="mt-3 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+                  />
+                </div>
+
+                {editUploadFiles.length > 0 && (
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+                    <p className="mb-2 text-xs font-semibold text-slate-600">새로 선택된 파일</p>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      {editUploadFiles.map((file, index) => (
+                        <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2">
+                          <span className="truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeEditUploadFile(index)}
+                            className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700 hover:bg-slate-200"
+                          >
+                            제거
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
