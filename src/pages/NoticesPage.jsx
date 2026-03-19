@@ -85,8 +85,8 @@ export default function NoticesPage() {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
 
-    if (!trimmedTitle || !trimmedContent) {
-      setMessage("제목과 내용을 입력해 주세요.");
+    if (!trimmedTitle) {
+      setMessage("제목을 입력해 주세요.");
       return;
     }
 
