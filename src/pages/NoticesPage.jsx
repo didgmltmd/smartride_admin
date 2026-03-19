@@ -31,7 +31,7 @@ export default function NoticesPage() {
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ id: null, title: "", content: "", imageUrl: "" });
+  const [editForm, setEditForm] = useState({ id: null, title: "", content: "" });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -174,7 +174,6 @@ export default function NoticesPage() {
       id: notice.id,
       title: notice.title || "",
       content: notice.content || "",
-      imageUrl: notice.imageUrl || "",
     });
     setEditModalOpen(true);
   }
@@ -182,7 +181,7 @@ export default function NoticesPage() {
   function closeEditModal() {
     if (editSaving) return;
     setEditModalOpen(false);
-    setEditForm({ id: null, title: "", content: "", imageUrl: "" });
+    setEditForm({ id: null, title: "", content: "" });
   }
 
   async function onConfirmEdit() {
@@ -199,7 +198,6 @@ export default function NoticesPage() {
       await updateMessage(editForm.id, {
         title: nextTitle,
         content: nextContent,
-        imageUrl: editForm.imageUrl.trim(),
       });
       setMessage("공지사항이 수정되었습니다.");
       closeEditModal();
@@ -520,15 +518,6 @@ export default function NoticesPage() {
                   value={editForm.content}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, content: e.target.value }))}
                   rows={6}
-                  className="w-full rounded-lg border border-slate-200 px-4 py-2.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">이미지 URL</label>
-                <input
-                  type="text"
-                  value={editForm.imageUrl}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
                   className="w-full rounded-lg border border-slate-200 px-4 py-2.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
