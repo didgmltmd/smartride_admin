@@ -246,7 +246,7 @@ export default function UserManagement() {
           <button
             type="button"
             onClick={openRetiredModal}
-            className="rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-900"
+            className="cursor-pointer rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-900"
           >
             퇴사자 관리
           </button>
@@ -269,14 +269,14 @@ export default function UserManagement() {
           </div>
           <button
             onClick={applyFilters}
-            className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
+            className="cursor-pointer rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
             type="button"
           >
             검색
           </button>
           <button
             onClick={resetFilters}
-            className="flex items-center gap-2 rounded-lg bg-slate-100 px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-200"
+            className="cursor-pointer flex items-center gap-2 rounded-lg bg-slate-100 px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-200"
             type="button"
           >
             <RotateCcw className="h-4 w-4" />
@@ -328,7 +328,7 @@ export default function UserManagement() {
 
         <button
           onClick={onCreateDriver}
-          className="mt-4 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
+          className="mt-4 cursor-pointer rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
           type="button"
         >
           사용자 생성
@@ -391,14 +391,14 @@ export default function UserManagement() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => onChangePassword(user.employeeId)}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                          className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                           type="button"
                         >
                           비밀번호 변경
                         </button>
                         <button
                           onClick={() => setDeleteTarget(user)}
-                          className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600"
+                          className="cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600"
                           type="button"
                         >
                           삭제

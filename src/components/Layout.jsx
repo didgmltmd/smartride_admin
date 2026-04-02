@@ -56,7 +56,7 @@ export default function AdminLayout() {
           <div className="mb-2 text-sm text-slate-400">관리자</div>
           <button
             onClick={logout}
-            className="w-full rounded-lg bg-rose-500 px-4 py-2 text-white transition-colors hover:bg-rose-600"
+            className="w-full cursor-pointer rounded-lg bg-rose-500 px-4 py-2 text-white transition-colors hover:bg-rose-600"
             type="button"
           >
             로그아웃
