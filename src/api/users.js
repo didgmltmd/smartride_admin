@@ -6,6 +6,11 @@ export async function getUsers() {
   return data;
 }
 
+export async function getRetiredUsers() {
+  const { data } = await client.get(`${ENDPOINTS.users}/retired`);
+  return data;
+}
+
 export async function findUser(employeeId) {
   const { data } = await client.get(`${ENDPOINTS.users}/${employeeId}`);
   return data;

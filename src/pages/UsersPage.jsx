@@ -1,6 +1,13 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Search, RotateCcw } from "lucide-react";
-import { createUser, deleteUser, getUsers, updateUserPassword } from "../api/users";
+import {
+  createUser,
+  deleteUser,
+  getRetiredUsers,
+  getUsers,
+  restoreUser,
+  updateUserPassword,
+} from "../api/users";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -18,6 +25,11 @@ export default function UserManagement() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [retiredUsers, setRetiredUsers] = useState([]);
+  const [retiredModalOpen, setRetiredModalOpen] = useState(false);
+  const [retiredLoading, setRetiredLoading] = useState(false);
+  const [retiredError, setRetiredError] = useState("");
+  const [restoringEmployeeId, setRestoringEmployeeId] = useState("");
 
   async function loadUsers() {
     setLoading(true);
@@ -31,6 +43,20 @@ export default function UserManagement() {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadRetiredUsers() {
+    setRetiredLoading(true);
+    setRetiredError("");
+    try {
+      const res = await getRetiredUsers();
+      setRetiredUsers(res?.data || []);
+    } catch {
+      setRetiredUsers([]);
+      setRetiredError("퇴사자 목록을 불러오지 못했습니다.");
+    } finally {
+      setRetiredLoading(false);
     }
   }
 
@@ -110,6 +136,45 @@ export default function UserManagement() {
     }
   }
 
+  async function openRetiredModal() {
+    setRetiredModalOpen(true);
+    await loadRetiredUsers();
+  }
+
+  function closeRetiredModal() {
+    if (restoringEmployeeId) return;
+    setRetiredModalOpen(false);
+    setRetiredError("");
+  }
+
+  async function onRestoreUser(employeeId) {
+    setRestoringEmployeeId(employeeId);
+    try {
+      await restoreUser(employeeId);
+      setMessage("퇴사 처리가 취소되었습니다.");
+      await Promise.all([loadUsers(), loadRetiredUsers()]);
+    } catch (e) {
+      setRetiredError(e?.response?.data?.message || "퇴사 취소에 실패했습니다.");
+    } finally {
+      setRestoringEmployeeId("");
+    }
+  }
+
+  function formatDeletedAt(value) {
+    if (!value) return "-";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }
+
   const filteredUsers = useMemo(() => {
     const search = appliedSearchTerm;
     if (!search) return users;
@@ -176,7 +241,16 @@ export default function UserManagement() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">사용자 관리</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-slate-800">사용자 관리</h1>
+          <button
+            type="button"
+            onClick={openRetiredModal}
+            className="rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-900"
+          >
+            퇴사자 관리
+          </button>
+        </div>
         {message && <p className="mt-2 text-sm text-blue-700">{message}</p>}
       </div>
 
@@ -368,6 +442,92 @@ export default function UserManagement() {
               >
                 {deleting ? "삭제 중..." : "삭제"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {retiredModalOpen && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
+          onClick={closeRetiredModal}
+        >
+          <div
+            className="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">퇴사자 관리</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  퇴사 처리된 사용자를 확인하고 복구할 수 있습니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeRetiredModal}
+                disabled={Boolean(restoringEmployeeId)}
+                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 disabled:opacity-60"
+              >
+                닫기
+              </button>
+            </div>
+
+            {retiredError && (
+              <p className="border-b border-rose-100 bg-rose-50 px-6 py-3 text-sm text-rose-600">
+                {retiredError}
+              </p>
+            )}
+
+            <div className="overflow-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">사원번호</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">이름</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">권한</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">퇴사 처리일</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">작업</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {retiredLoading && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-6 text-center text-sm text-slate-500">
+                        퇴사자 목록을 불러오는 중입니다.
+                      </td>
+                    </tr>
+                  )}
+                  {!retiredLoading && retiredUsers.length === 0 && !retiredError && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-6 text-center text-sm text-slate-500">
+                        조회된 퇴사자가 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                  {!retiredLoading &&
+                    retiredUsers.map((user) => (
+                      <tr key={user.employeeId} className="transition-colors hover:bg-slate-50">
+                        <td className="px-6 py-4 text-sm text-slate-600">{user.employeeId}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-800">{user.name}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600">{user.role}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {formatDeletedAt(user.deletedAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            type="button"
+                            onClick={() => onRestoreUser(user.employeeId)}
+                            disabled={restoringEmployeeId === user.employeeId}
+                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                          >
+                            {restoringEmployeeId === user.employeeId ? "복구 중..." : "퇴사 취소"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
