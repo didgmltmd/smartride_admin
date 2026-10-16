@@ -32,8 +32,11 @@
   .feedback { @apply my-4 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm leading-6; }
   .feedback-error { @apply border-rose-100 bg-rose-50 text-rose-700; }
   .feedback-success { @apply border-emerald-100 bg-emerald-50 text-emerald-700; }
-  .app-modal { @apply fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-2xl; }
-  .app-modal-wide { @apply max-w-2xl; }
+  .app-modal { @apply fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl; }
+  .app-modal[open] { display: flex; flex-direction: column; }
+  .app-modal-wide { @apply max-w-3xl; }
+  .modal-header { @apply flex shrink-0 items-center justify-between gap-4 border-b border-slate-100 px-6 py-4; }
+  .modal-body { @apply min-h-0 overflow-y-auto p-5 md:p-6; overscroll-behavior: contain; }
   .app-modal::backdrop { background: rgb(15 23 42 / .42); backdrop-filter: blur(2px); }
   .modal-actions { @apply mt-6 flex justify-end gap-2; }
   .table-scroll { @apply overflow-x-auto; }
@@ -46,8 +49,63 @@
   .status-badge { @apply rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700; }
   .upload-zone { @apply rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-6 text-center; }
   .upload-zone-active { @apply border-blue-400 bg-blue-50; }
+  .field[aria-invalid="true"] { @apply border-rose-400 focus:ring-rose-100; }
+  .field-error { @apply mt-2 text-xs leading-5 text-rose-600; }
+  .disclosure-button { @apply flex w-full items-center justify-between gap-3 text-left text-slate-700; }
+  .disclosure-button strong { @apply block text-sm font-semibold; }
+  .disclosure-button small { @apply mt-1 block text-xs font-normal leading-5 text-slate-500; }
+  .section-icon { @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600; }
+  .form-footer { @apply mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5; }
+  .form-footer p { @apply text-xs leading-5 text-slate-500; }
+  .list-heading { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4; }
+  .list-heading h2 { @apply text-sm font-semibold text-slate-800; }
+  .count-badge { @apply ml-2 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700; }
+  .directory-toolbar { @apply flex flex-wrap gap-3 px-5 pt-4; }
+  .search-field { @apply relative flex min-w-0 flex-1 items-center; }
+  .search-field > svg { @apply pointer-events-none absolute left-3.5 text-slate-400; }
+  .search-field .field { @apply pr-10 pl-10; }
+  .search-field .icon-button { @apply absolute right-1; }
+  .directory-sort { width: auto; min-width: 7rem; }
+  .directory-summary { @apply px-5 py-3 text-xs text-slate-500; }
+  .directory-summary strong { @apply font-semibold text-slate-800; }
+  .directory-summary span { @apply text-slate-400; }
+  .directory-table { max-height: clamp(240px, calc(100dvh - 500px), 560px); overscroll-behavior: contain; }
+  .directory-table thead th { position: sticky; top: 0; z-index: 1; background: #f8fafc; }
+  .directory-table .data-table td { @apply py-3; }
+  .directory-table tbody tr:nth-child(even) { background: #fafbfd; }
+  .directory-table tbody tr:hover { background: #eff6ff; }
+  .employee-id { font-variant-numeric: tabular-nums; }
+  .person-name { @apply font-semibold text-slate-800; }
+  .directory-pagination { @apply flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-3; }
+  .directory-pagination select { @apply rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600; }
+  .page-count { @apply min-w-12 text-center text-xs text-slate-600; font-variant-numeric: tabular-nums; }
+  .modal-body .directory-toolbar, .modal-body .directory-summary, .modal-body .directory-pagination { padding-left: 0; padding-right: 0; }
+  .modal-body .directory-table { max-height: 38dvh; border: 1px solid #e2e8f0; border-radius: .5rem; }
+  .notice-context { @apply mb-4 break-words text-sm font-medium text-slate-700; }
+  .read-progress { @apply mb-5 rounded-xl bg-slate-50 px-4 py-3; }
+  .read-progress > div { @apply mb-2 flex flex-wrap justify-between gap-2 text-xs text-slate-500; }
+  .read-progress strong { @apply font-semibold text-blue-700; }
+  .read-progress small { @apply ml-1 font-normal text-slate-500; }
+  .read-progress progress { @apply block h-1.5 w-full overflow-hidden rounded-full; appearance: none; }
+  .read-progress progress::-webkit-progress-bar { background: #e2e8f0; }
+  .read-progress progress::-webkit-progress-value { background: #2563eb; border-radius: 99px; }
+  .read-progress progress::-moz-progress-bar { background: #2563eb; }
+  .segmented-control { @apply flex gap-1 rounded-xl bg-slate-100 p-1; }
+  .segmented-control button { @apply flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-500; }
+  .segmented-control button[aria-pressed="true"] { @apply bg-white text-blue-700 shadow-sm; }
+  .segmented-control span { @apply ml-1 text-xs; }
+  .image-upload { @apply mt-2 flex flex-wrap items-center gap-4 p-4 text-left; }
+  .settlement-upload { @apply px-5 py-8; }
+  .settlement-upload.has-file { @apply border-blue-200 bg-blue-50/40; }
+  .upload-guide { @apply mt-5 rounded-xl bg-slate-50 px-4 py-4; }
+  .upload-guide h3 { @apply mb-2 text-xs font-semibold text-slate-700; }
+  .upload-guide li { @apply mt-1.5 flex items-start gap-2 text-xs leading-5 text-slate-500; }
+  .upload-guide svg { @apply mt-0.5 shrink-0 text-slate-400; }
 }
 @media (max-width: 767px) {
+  .modal-body .directory-table { max-height: min(30dvh, max(120px, calc(90dvh - 500px))); }
+  .directory-toolbar .search-field { flex-basis: 100%; }
+  .directory-sort { width: 100%; }
   .sidebar-footer { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; }
   .sidebar-footer > div { margin-bottom: 0; }
   .sidebar-footer button { width: auto; }

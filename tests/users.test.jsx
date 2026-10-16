@@ -10,6 +10,7 @@ it('masks the initial password and prevents duplicate creation while pending', a
   createUser.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
   render(<UsersPage />);
   await screen.findByText('조회된 사용자가 없습니다.');
+  await userEvent.click(screen.getByRole('button', { name: /기사 계정 추가/ }));
   await userEvent.type(screen.getByLabelText('사원번호'), '1001');
   await userEvent.type(screen.getByLabelText('이름'), '홍길동');
   const password = screen.getByLabelText('초기 비밀번호');

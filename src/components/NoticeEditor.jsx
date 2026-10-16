@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { createMessage, updateMessage, uploadMessageImages } from '../api/notices';
 import ImagePicker from './ImagePicker';
 import Feedback from './Feedback';
@@ -10,6 +10,9 @@ export function noticeImages(notice) {
   return list.filter((url) => typeof url === 'string' && /^(https?:\/\/|\/api\/)/i.test(url));
 }
 export default function NoticeEditor({ notice, onSaved, onCancel, onBusyChange }) {
+  const titleInput = useRef(null);
+  const titleErrorId = useId();
+  const [titleError, setTitleError] = useState('');
   const [title, setTitle] = useState(notice?.title || '');
   const [content, setContent] = useState(notice?.content || '');
   const [images, setImages] = useState(() => noticeImages(notice));
@@ -19,7 +22,8 @@ export default function NoticeEditor({ notice, onSaved, onCancel, onBusyChange }
   // Keep successful uploads when saving fails, so a retry does not re-upload them.
   async function submit(event) {
     event.preventDefault();
-    const error = !title.trim() ? '제목을 입력해 주세요.' : validateImages(files, images.length);
+    if (!title.trim()) { setTitleError('제목을 입력해 주세요.'); titleInput.current?.focus(); return; }
+    const error = validateImages(files, images.length);
     if (error) { setFeedback({ type: 'error', text: error }); return; }
     await action.run(async () => {
       onBusyChange?.(true); setFeedback(null);
@@ -41,10 +45,10 @@ export default function NoticeEditor({ notice, onSaved, onCancel, onBusyChange }
       finally { onBusyChange?.(false); }
     });
   }
-  return <form onSubmit={submit}>
+  return <form onSubmit={submit} noValidate>
     <fieldset disabled={action.busy} className="space-y-5">
-      <label className="field-label">제목<input data-initial-focus={notice ? '' : undefined} className="field mt-2" placeholder="공지 제목을 입력해 주세요." value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} required /></label>
-      <label className="field-label">내용<textarea className="field mt-2 min-h-36 resize-y" placeholder="기사님들에게 전달할 내용을 입력해 주세요." value={content} maxLength={10000} onChange={(e) => setContent(e.target.value)} rows={5} /></label>
+      <div><label className="field-label">제목<input ref={titleInput} data-initial-focus={notice ? '' : undefined} className="field mt-2" placeholder="공지 제목을 입력해 주세요." value={title} maxLength={200} onChange={(e) => { setTitle(e.target.value); setTitleError(''); }} required aria-invalid={Boolean(titleError)} aria-describedby={titleError ? titleErrorId : undefined} /></label>{titleError && <p id={titleErrorId} className="field-error">{titleError}</p>}</div>
+      <label className="field-label">내용<textarea className="field mt-2 min-h-28 resize-y" placeholder="기사님들에게 전달할 내용을 입력해 주세요." value={content} maxLength={10000} onChange={(e) => setContent(e.target.value)} rows={4} /></label>
       {images.length > 0 && <div><p className="field-label">첨부된 이미지</p><ul className="mt-2 space-y-2">{images.map((url,index) => <li key={url} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><a href={url} target="_blank" rel="noreferrer" className="text-sm text-blue-600 underline-offset-4 hover:underline">이미지 {index + 1} 보기</a><button type="button" className="btn-secondary btn-small" onClick={() => setImages(images.filter((_,i) => i !== index))}>제거</button></li>)}</ul></div>}
       <ImagePicker files={files} onChange={(next) => { setFiles(next); setFeedback(null); }} existingCount={images.length} disabled={action.busy} onError={(text) => setFeedback({ type: 'error', text })} />
     </fieldset>

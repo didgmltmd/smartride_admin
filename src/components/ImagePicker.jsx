@@ -18,16 +18,16 @@ export default function ImagePicker({ files, onChange, existingCount = 0, disabl
   }
   return <div>
     <label htmlFor={id} className="field-label">이미지 첨부 <span className="font-normal text-slate-400">(선택)</span></label>
-    <div className={`upload-zone ${dragging ? 'upload-zone-active' : ''}`}
+    <div className={`upload-zone image-upload ${dragging ? 'upload-zone-active' : ''}`}
       onDragOver={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(Array.from(event.dataTransfer.files)); }}>
-      <ImagePlus size={24} className="mx-auto mb-2 text-slate-400" aria-hidden="true" />
-      <p className="mb-1 text-sm text-slate-600">이미지를 끌어다 놓거나 파일을 선택해 주세요.</p>
-      <p className="mb-3 text-xs text-slate-400">JPG, PNG, WEBP · 파일당 5MB · 최대 5개</p>
+      <ImagePlus size={24} className="shrink-0 text-slate-400" aria-hidden="true" />
+      <div className="flex-1"><p className="mb-1 text-sm text-slate-600">이미지를 끌어다 놓으세요.</p><p className="text-xs text-slate-500">JPG, PNG, WEBP · 파일당 5MB · {existingCount + files.length}/5개</p></div>
       <input id={id} ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={disabled}
-        className="max-w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-blue-700"
+        className="sr-only"
         onChange={(event) => addFiles(Array.from(event.target.files))} />
+      <button type="button" className="btn-secondary btn-small" disabled={disabled} onClick={() => input.current?.click()}>이미지 선택</button>
     </div>
     {files.length > 0 && <ul className="mt-3 space-y-2">
       {files.map((file, index) => <li key={`${file.name}-${file.lastModified}`} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">

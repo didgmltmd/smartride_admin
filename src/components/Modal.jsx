@@ -19,10 +19,10 @@ export default function Modal({ title, onClose, busy = false, wide = false, chil
       const rect = event.currentTarget.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose();
     }}>
-    <div className="mb-5 flex items-center justify-between gap-4">
+    <div className="modal-header">
       <h2 id={titleId} className="text-lg font-semibold text-slate-900">{title}</h2>
       <button type="button" className="icon-button" aria-label="닫기" disabled={busy} onClick={onClose}><X size={20} /></button>
     </div>
-    {children}
+    <div className="modal-body">{children}</div>
   </dialog>;
 }

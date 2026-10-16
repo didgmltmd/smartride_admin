@@ -4,6 +4,7 @@ import { getUsers } from '../api/users';
 import Modal from './Modal';
 import Feedback from './Feedback';
 import { errorMessage } from '../lib/validation';
+import PeopleList from './PeopleList';
 
 export default function NoticeReadsModal({ notice, onClose }) {
   const [tab, setTab] = useState('unread');
@@ -25,12 +26,14 @@ export default function NoticeReadsModal({ notice, onClose }) {
       });
     return () => controller.abort();
   }, [notice.id, retry]);
-  const rows = state[tab];
+  const total = state.read.length + state.unread.length;
+  const rate = total ? Math.round(state.read.length / total * 100) : 0;
   return <Modal title="공지 확인 현황" wide onClose={onClose}>
-    <p className="mb-5 text-sm text-slate-500">{notice.title}</p>
+    <p className="notice-context">{notice.title}</p>
     {state.loading ? <p className="empty-state" role="status">확인 현황을 불러오고 있습니다.</p> : state.error ? <><Feedback value={{ type: 'error', text: state.error }} /><button className="btn-secondary mt-3" onClick={() => setRetry((n) => n + 1)}>다시 불러오기</button></> : <>
-      <div className="mb-4 flex gap-2" aria-label="확인 상태 필터">{[['unread','미확인자'], ['read','확인자']].map(([key,label]) => <button key={key} type="button" aria-pressed={tab === key} className={tab === key ? 'btn-primary btn-small' : 'btn-secondary btn-small'} onClick={() => setTab(key)}>{label} {state[key].length}</button>)}</div>
-      {rows.length === 0 ? <p className="empty-state">{tab === 'unread' ? '미확인자가 없습니다.' : '아직 확인한 사용자가 없습니다.'}</p> : <div className="table-scroll"><table className="data-table"><thead><tr><th>사원번호</th><th>이름</th>{tab === 'read' && <th>확인 시간</th>}</tr></thead><tbody>{rows.map((user) => <tr key={user.employeeId}><td>{user.employeeId}</td><td>{user.name}</td>{tab === 'read' && <td>{user.readAt ? new Date(user.readAt).toLocaleString('ko-KR') : '-'}</td>}</tr>)}</tbody></table></div>}
+      <div className="read-progress"><div><span>공지 확인률</span><strong>{rate}% <small>({state.read.length} / {total}명)</small></strong></div><progress value={state.read.length} max={total || 1} aria-label="공지 확인률" /></div>
+      <div className="segmented-control" aria-label="확인 상태 필터">{[['unread','미확인자'], ['read','확인자']].map(([key,label]) => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)}>{label} <span>{state[key].length}</span></button>)}</div>
+      <PeopleList key={tab} users={state[tab]} label={tab === 'unread' ? '미확인자' : '확인자'} emptyMessage={tab === 'unread' ? '미확인자가 없습니다.' : '아직 확인한 사용자가 없습니다.'} columns={tab === 'read' ? [{ key: 'readAt', label: '확인 시간', render: (user) => user.readAt ? new Date(user.readAt).toLocaleString('ko-KR') : '-' }] : []} />
     </>}
   </Modal>;
 }
