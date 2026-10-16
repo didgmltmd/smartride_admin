@@ -1,0 +1,20 @@
+import { it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import NoticeEditor from '../src/components/NoticeEditor';
+import { updateMessage, uploadMessageImages } from '../src/api/notices';
+vi.mock('../src/api/notices', () => ({ updateMessage: vi.fn(), uploadMessageImages: vi.fn(), createMessage: vi.fn() }));
+it('retains uploaded image URLs after a save failure without uploading twice', async () => {
+  uploadMessageImages.mockResolvedValue({ data: { imageUrls: ['https://example.com/new.png'] } });
+  updateMessage.mockRejectedValueOnce(new Error('수정 실패')).mockResolvedValueOnce({});
+  const onSaved = vi.fn();
+  render(<NoticeEditor notice={{ id: 7, title: '안내', content: '내용', imageUrls: ['https://example.com/old.png'] }} onSaved={onSaved} />);
+  const file = new File(['png'], 'notice.png', { type: 'image/png' });
+  await userEvent.upload(screen.getByLabelText(/이미지 첨부/), file);
+  await userEvent.click(screen.getByRole('button', { name: '수정 저장' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('수정 실패');
+  await userEvent.click(screen.getByRole('button', { name: '수정 저장' }));
+  expect(uploadMessageImages).toHaveBeenCalledOnce();
+  expect(updateMessage).toHaveBeenLastCalledWith(7, { title: '안내', content: '내용', imageUrls: ['https://example.com/old.png','https://example.com/new.png'] });
+  expect(onSaved).toHaveBeenCalledOnce();
+});

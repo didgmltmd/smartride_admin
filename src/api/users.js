@@ -1,8 +1,8 @@
 import client from "./client";
 import { ENDPOINTS } from "../config/endpoints";
 
-export async function getUsers() {
-  const { data } = await client.get(ENDPOINTS.users);
+export async function getUsers(signal) {
+  const { data } = await client.get(ENDPOINTS.users, { signal });
   return data;
 }
 
@@ -12,7 +12,7 @@ export async function getRetiredUsers() {
 }
 
 export async function findUser(employeeId) {
-  const { data } = await client.get(`${ENDPOINTS.users}/${employeeId}`);
+  const { data } = await client.get(`${ENDPOINTS.users}/${encodeURIComponent(employeeId)}`);
   return data;
 }
 
@@ -22,16 +22,16 @@ export async function createUser(payload) {
 }
 
 export async function deleteUser(employeeId) {
-  const { data } = await client.delete(`${ENDPOINTS.users}/${employeeId}`);
+  const { data } = await client.delete(`${ENDPOINTS.users}/${encodeURIComponent(employeeId)}`);
   return data;
 }
 
 export async function updateUserPassword(employeeId, password) {
-  const { data } = await client.put(`${ENDPOINTS.users}/${employeeId}/password`, { password });
+  const { data } = await client.put(`${ENDPOINTS.users}/${encodeURIComponent(employeeId)}/password`, { password });
   return data;
 }
 
 export async function restoreUser(employeeId) {
-  const { data } = await client.put(`${ENDPOINTS.users}/${employeeId}/restore`);
+  const { data } = await client.put(`${ENDPOINTS.users}/${encodeURIComponent(employeeId)}/restore`);
   return data;
 }

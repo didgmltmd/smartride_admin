@@ -6,9 +6,7 @@ export async function uploadSettlement(file) {
   formData.append("file", file);
 
   const { data } = await client.post(ENDPOINTS.settlementUpload, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    timeout: 100000,
   });
 
   return data;

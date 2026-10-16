@@ -16,9 +16,7 @@ export async function uploadMessageImages(files) {
   files.forEach((file) => formData.append("files", file));
 
   const { data } = await client.post(ENDPOINTS.messageImageUpload, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    timeout: 100000,
   });
   return data;
 }
@@ -33,7 +31,7 @@ export async function deleteMessage(id) {
   return data;
 }
 
-export async function getMessageReads(id) {
-  const { data } = await client.get(`${ENDPOINTS.messages}/${id}/reads`);
+export async function getMessageReads(id, signal) {
+  const { data } = await client.get(`${ENDPOINTS.messages}/${id}/reads`, { signal });
   return data;
 }
